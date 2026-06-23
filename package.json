@@ -1,0 +1,28 @@
+{
+  "name": "sport-record",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "羽毛球训练与比赛记录分析平台",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.0",
+    "@commitlint/cli": "^19.5.0",
+    "@commitlint/config-conventional": "^19.5.0",
+    "eslint": "^9.11.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript-eslint": "^8.7.0"
+  }
+}
