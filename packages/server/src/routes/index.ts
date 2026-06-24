@@ -3,6 +3,7 @@ import { exerciseRouter } from './exercise.js';
 import { workoutRouter } from './workout.js';
 import { workoutSetRouter, setRouter } from './set.js';
 import { eventRouter } from './event.js';
+import { matchRouter } from './match.js';
 
 /**
  * 挂载业务路由（design.md 5.2）。
@@ -14,4 +15,5 @@ export function mountBusinessRoutes(app: Express): void {
   app.use('/api/workouts', workoutSetRouter); // 嵌套 POST /api/workouts/:id/sets
   app.use('/api/sets', setRouter);
   app.use('/api/events', eventRouter);
+  app.use('/api/matches', matchRouter);
 }
