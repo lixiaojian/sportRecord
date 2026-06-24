@@ -6,25 +6,29 @@
 
 ## 1. 进度概览与已完成工作
 
-羽毛球训练与比赛记录分析平台（monorepo: web + server + shared）。7 阶段计划中阶段 0/1/2 已完成，下一步阶段 3。当前在 `dev` 分支，**阶段 1+2 全部改动尚未提交**（工作区 dirty）。
+羽毛球训练与比赛记录分析平台（monorepo: web + server + shared）。7 阶段计划中阶段 0/1/2/3 已完成，下一步阶段 4。当前在 `dev` 分支，阶段 1/2/3 已分别提交（`feat(shared)`、`feat(server): 阶段2`、`feat(server): 阶段3 认证与权限`），工作区干净。
 
-本次已完成：
+本次已完成（阶段 3：后端认证与权限，全程 TDD）：
 
-- **阶段 1（shared 包）**：8 枚举 + 全域 zod schema + 推导类型，`pnpm --filter shared build` 产出 dist，server/web 可 import。
-  - 文件：`packages/shared/src/enums.ts`、`packages/shared/src/schemas/{common,auth,user,exercise,workout,set,event,match}.ts`、`packages/shared/src/index.ts`
-- **阶段 2（后端基础设施）**：Express + Prisma 7 + SQLite，6 模型、软删除、错误处理、zod 中间件、限流、分页、health 路由。
-  - Prisma：`packages/server/prisma/schema.prisma`、`packages/server/prisma.config.ts`、`prisma/migrations/20260624020636_init/`（已应用）
-  - lib：`packages/server/src/lib/{prisma,errors,errorHandler,response,validate,pagination,rateLimit}.ts`
-  - 应用：`packages/server/src/app.ts`、`packages/server/src/routes/health.ts`、`packages/server/src/index.ts`
-  - 测试：`packages/server/src/lib/infra.test.ts`（7/7 通过）、`packages/server/src/test/setup.ts`、`packages/server/vitest.config.ts`
-  - 配置：`packages/server/.env.example`、`pnpm-workspace.yaml`（加 `onlyBuiltDependencies`）
+- **密码工具** `lib/password.ts`：scrypt 哈希（随机 salt，`saltHex:hashHex` 存储）+ `timingSafeEqual` 校验。
+- **JWT 工具** `lib/jwt.ts`：access 1h / refresh 30d，载荷带 `type` 字段防互用，`JWT_SECRET` 缺失 fail fast。
+- **认证服务** `services/authService.ts`：
+  - `register`：用户名唯一、scrypt 哈希、昵称默认=用户名、role=user；防御性复跑 zod schema。
+  - `login`：5 次失败锁 15 分钟（`ACCOUNT_LOCKED`）、禁用账号 `ACCOUNT_DISABLED`、成功清零计数并签 access+refresh；用户不存在与密码错统一 `INVALID_CREDENTIALS`（不泄漏存在性）。
+  - `refresh`：验 refresh token、校验用户存在且未禁用、签新 access（不轮换 refresh，无状态 JWT 不维护黑名单）。
+- **auth 中间件 + ACL** `lib/auth.ts`：`authenticate`（挂 `req.user`）、`optionalAuth`（游客放行，但 token 无效仍 401 不静默降级）、`requireRole(...roles)`、`isOwner(resource, userId)`（命中 `userId`/`creatorId` 任一）。通过 module augmentation 扩展 Express `Request.user`。
+- **auth 路由** `routes/auth.ts`：`POST /api/auth/{register,login,refresh,logout}` + `GET /api/auth/me`，refresh 走 httpOnly cookie（sameSite=lax, secure=prod, path=/api/auth）。`app.ts` 已挂载 cookie-parser 与 authRouter。
+- **seed 脚本** `prisma/seed.ts`：20 项内置动作库（5 分类，幂等 findFirst 去重）+ `ADMIN_USERNAME` 命中已注册用户提权（密码不硬编码）。
+- 测试：53/53 通过（password 4、jwt 7、authService 15、auth 中间件 13、auth 路由 9、infra 5），全流程覆盖注册→me→refresh→logout、5 次锁定、401/403、cookie 持久。
+- 新增依赖：`jsonwebtoken` + `@types/jsonwebtoken`、`cookie-parser` + `@types/cookie-parser`、`@types/express-serve-static-core`（module augmentation 必需，pnpm 默认不提升该 transitive type）。
 
-验收全通过：`/api/health` 200、AppError 统一结构、404 兜底、zod 422、软删除读写过滤、7/7 测试、全包 lint 0 error、tsc 0 error。
+验收全通过：tsc 0 error、lint 0 error、`pnpm --filter server test` 53/53、seed 脚本 dev db 实跑 + 幂等 + admin 提权验证通过。
 
 ## 2. 进行中 / 未完成任务
 
-- [ ] **提交阶段 1+2 改动**：工作区 dirty，未 commit。用户上次未明确要求提交，待确认。
-- [ ] 阶段 3：后端认证与权限（JWT/scrypt/锁定/中间件/seed/测试）—— 未开始
+- [x] 阶段 1+2 改动已提交（2 个 commit）
+- [x] 阶段 3：后端认证与权限 —— 已完成
+- [ ] **提交阶段 3 改动**：已就绪，待用户确认后提交（建议 commit `feat(server): 阶段3 认证与权限`）
 - [ ] 阶段 4：后端业务 CRUD API —— 未开始
 - [ ] 阶段 5：前端基础设施 —— 未开始
 - [ ] 阶段 6：前端业务页面 —— 未开始
@@ -35,40 +39,46 @@
 
 ## 3. 下一步计划
 
-1. 确认是否提交阶段 1+2 改动（建议拆 2 个 commit：`feat(shared): 阶段1` + `feat(server): 阶段2 基础设施`）。
-2. 执行阶段 3，详见 `docs/plan.md` 阶段 3。要点：
-   - 认证服务：注册（scrypt 哈希 + 强度校验 + 用户名唯一）、登录（5 次失败锁 15 分钟 + 签 access/refresh）、刷新、登出
-   - JWT 工具：access 1h（verify 签名 + exp）、refresh 30d（httpOnly cookie）
-   - auth 中间件：`authenticate` / `optionalAuth` / `requireRole(...roles)`
-   - ACL：`isOwner(resource, userId)`
-   - seed 脚本：内置动作库 + `ADMIN_USERNAME` 提权（`packages/server/prisma/seed.ts`，`prisma.config.ts` 已配 seed 命令）
-   - 单测/集成：注册、登录、锁定、刷新、权限拒绝（复用 `src/test/setup.ts` 临时库）
-3. 阶段 3 完成后建议跑 `security-review`（JWT/scrypt/限流/ACL）。
+1. 确认提交阶段 3 改动（工作区已干净就绪）。
+2. 执行阶段 4，详见 `docs/plan.md` 阶段 4。要点：按资源逐个实现 Exercise/Workout/Set/Event/Match 的路由+service+zod+权限+分页+软删除；回收站；统计；admin 用户管理；公开资料。复用阶段 2/3 的 `validate`/`pagination`/`authenticate`/`optionalAuth`/`requireRole`/`isOwner`/`basePrisma`。
+3. 阶段 4 收尾建议跑 `security-review`（覆盖 ACL/软删除泄漏/分页越权）。
 
-> 后续阶段顺序（详见 `docs/plan.md`）：3 认证权限 → 4 业务 CRUD API → 5 前端基础(路由守卫/API client/Query/Zustand/主题/布局) → 6 前端业务页面 → 7 收尾(README/回归)。
+> 后续阶段顺序（详见 `docs/plan.md`）：4 业务 CRUD API → 5 前端基础(路由守卫/API client/Query/Zustand/主题/布局) → 6 前端业务页面 → 7 收尾(README/回归)。
 
 ## 4. 环境与运行命令
 
 - 依赖安装：`pnpm install`
-- 启动后端（dev）：`pnpm --filter server dev`（默认 `PORT=3000`，`DATABASE_URL=file:./db.sqlite`）
+- 启动后端（dev）：`pnpm --filter server dev`（默认 `PORT=3000`，`DATABASE_URL=file:./db.sqlite`，需配 `JWT_SECRET`）
 - 启动全栈：`pnpm dev`（web 尚未初始化 Vite，阶段 5 起可用）
 - 构建 shared：`pnpm --filter shared build`
-- 测试：`pnpm --filter server test`（自动建临时库 `.test/test.sqlite`）
+- 测试：`pnpm --filter server test`（自动建临时库 `.test/test.sqlite`，setup 默认 `JWT_SECRET=test-secret`）
+- seed：`pnpm --filter server db:seed`（内置动作库 + ADMIN_USERNAME 提权，幂等可重复执行）
 - lint / 类型检查：`pnpm lint` / `pnpm -r exec tsc --noEmit`
 - 数据库迁移：`pnpm --filter server db:migrate`（需 `DATABASE_URL`，默认 `file:./db.sqlite`）
 - 生成 client：`pnpm --filter server db:generate`
 - 关键文件：
   - 设计：`docs/design.md`；计划：`docs/plan.md`（**必读，勿在交接文档里重复其内容，用路径引用**）
+  - 认证：`packages/server/src/lib/{password,jwt,auth}.ts`、`packages/server/src/services/authService.ts`、`packages/server/src/routes/auth.ts`
   - 软删除实现：`packages/server/src/lib/prisma.ts`
   - 错误/响应：`packages/server/src/lib/{errors,errorHandler,response}.ts`
   - 校验/分页/限流：`packages/server/src/lib/{validate,pagination,rateLimit}.ts`
+  - seed：`packages/server/prisma/seed.ts`
 - 依赖注意：
   - 本机 node v24.16.0、pnpm 10.33.2（`.nvmrc` 写 20，能跑）
   - Prisma 7：`@prisma/client@7.8.0` + `@prisma/adapter-better-sqlite3` + `better-sqlite3`（native，已配 `onlyBuiltDependencies`）
   - zod：shared `^3.23.8`，server `^3.25.76`
-  - Express 5、TypeScript 6.0.3
+  - Express 5、TypeScript 6.0.3、jsonwebtoken 9、cookie-parser 1.4.7
+  - **JWT_SECRET 必填**：生产部署前需在 `.env` 配强随机串，缺失则启动期抛错
 
 ## 5. 备注（接手者必读）
+
+### 阶段 3 关键约定
+
+- **JWT 不轮换 refresh**：无状态 JWT 不维护黑名单，refresh 30 天有效期内可反复换 access。如需 refresh 轮换/吊销，需引入服务端存储（design.md 暂不要求）。
+- **cookie 配置**：refresh cookie `path=/api/auth`，仅认证接口带；`secure` 仅 production 开（dev http 关）；`sameSite=lax` 防 CSRF。
+- **错误码语义**：`INVALID_CREDENTIALS`（用户不存在/密码错，401）/ `ACCOUNT_LOCKED`（401）/ `ACCOUNT_DISABLED`（403）/ `INVALID_TOKEN`（access 失效，401）/ `INVALID_REFRESH_TOKEN`（refresh 失效，401）/ `UNAUTHORIZED`（未带 token，401）/ `FORBIDDEN`（角色不足，403）。前端按这些码决定跳登录还是刷新。
+- **Express Request.user 类型扩展**：通过 `declare module 'express-serve-static-core'` augmentation，依赖显式安装的 `@types/express-serve-static-core`；若该 type 包被移除，tsc 会报 augmentation 找不到模块。
+- **module augmentation 与 vitest globals**：`optionalAuth` 对无效 token 抛 401 而非降级为游客，是有意为之——避免前端误用过期 token 却以游客身份操作。
 
 ### 软删除 bypass 方案的偏离
 
@@ -90,10 +100,10 @@
 
 ### 其他
 
-- `packages/server/src/app.ts` 的 `createApp(mountRoutes?)` 接受路由挂载回调，供 server 入口与测试复用；阶段 3+ 的业务路由应通过此参数挂载，在 `notFound`/`errorHandler` 之前。
-- server/web 的 `src/index.ts` 当前仍是阶段 1 的 import 冒烟占位（web 阶段 5、server 已被阶段 2 覆盖为真实入口）。
-- `db.sqlite` 被 `.gitignore` 忽略，迁移文件已提交。
-- `superpowers:test-driven-development` / `tdd` skill 适合阶段 3；`security-review` 适合阶段 3 收尾。
+- `packages/server/src/app.ts` 的 `createApp(mountRoutes?)` 接受路由挂载回调，供 server 入口与测试复用；authRouter 已在 createApp 内挂载，阶段 4+ 的业务路由通过此参数挂载，在 `notFound`/`errorHandler` 之前。
+- server/web 的 `src/index.ts`：server 已是真实入口（阶段 2），web 仍是阶段 1 的 import 冒烟占位（阶段 5 起）。
+- `db.sqlite` 被 `.gitignore` 忽略，迁移文件已提交；`.test/` 临时测试库同样被忽略。
+- `superpowers:test-driven-development` skill 已用于阶段 3；`security-review` 适合阶段 3/4 收尾。
 
 ### 技术栈关键决策（已定，不再讨论，详见 `docs/design.md`）
 

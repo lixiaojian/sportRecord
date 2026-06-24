@@ -12,6 +12,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const TMP_DB = path.resolve(__dirname, '../../.test/test.sqlite');
 
 export function setup(): void {
+  // JWT 密钥：测试默认值，未显式设置时兜底
+  if (!process.env.JWT_SECRET) process.env.JWT_SECRET = 'test-secret';
   fs.mkdirSync(path.dirname(TMP_DB), { recursive: true });
   if (fs.existsSync(TMP_DB)) fs.unlinkSync(TMP_DB);
   process.env.DATABASE_URL = `file:${TMP_DB}`;
