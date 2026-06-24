@@ -1,9 +1,10 @@
 import 'dotenv/config';
 import { createApp } from './app.js';
+import { mountBusinessRoutes } from './routes/index.js';
 
 const PORT = Number(process.env.PORT ?? 3000);
 
-const app = createApp();
+const app = createApp(mountBusinessRoutes);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
