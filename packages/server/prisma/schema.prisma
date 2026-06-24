@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// 用户
+model User {
+  id             String    @id @default(uuid())
+  username       String    @unique
+  passwordHash   String
+  nickname       String
+  avatar         String    @default("")
+  bio            String    @default("")
+  defaultPublic  Boolean   @default(true)
+  racketHand     String    @default("right") // left | right
+  mainEvent      String    @default("single") // single | double | mixed
+  role           String    @default("user") // user | admin
+  disabled       Boolean   @default(false)
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([deletedAt])
+}
+
+// 训练项（动作库）
+model Exercise {
+  id        String    @id @default(uuid())
+  name      String
+  category  String // technique | footwork | fitness | multiball | sparring
+  unit      String // sets | duration | reps
+  note      String    @default("")
+  isBuiltIn Boolean   @default(false)
+  creatorId String? // 内置为 null，用户自建指向 User.id（ID 软关联）
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([creatorId, deletedAt])
+}
+
+// 训练课
+model Workout {
+  id        String    @id @default(uuid())
+  userId    String
+  date      String
+  title     String
+  feeling   String    @default("")
+  duration  Int?
+  note      String    @default("")
+  isPublic  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, deletedAt])
+  @@index([isPublic, deletedAt])
+}
+
+// 训练记录（组）
+model Set {
+  id         String   @id @default(uuid())
+  workoutId  String
+  exerciseId String
+  sets       Int?
+  reps       Int?
+  duration   Int?
+  distance   Float?
+  weight     Float?
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([workoutId])
+  @@index([exerciseId])
+}
+
+// 赛事
+model Event {
+  id        String    @id @default(uuid())
+  name      String
+  type      String // club | regional | official
+  startDate String
+  endDate   String?
+  location  String    @default("")
+  note      String    @default("")
+  creatorId String
+  isPublic  Boolean   @default(true)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([creatorId, deletedAt])
+  @@index([isPublic, deletedAt])
+}
+
+// 比赛
+model Match {
+  id          String   @id @default(uuid())
+  eventId     String
+  userId      String
+  type        String // single | double | mixed | team
+  date        String
+  partnerId   String?
+  opponentIds String   @default("[]") // JSON 数组字符串
+  scores      String   @default("[]") // JSON [[21,15],[19,21]]
+  result      String // win | lose
+  note        String   @default("")
+  isPublic    Boolean  @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, deletedAt])
+  @@index([eventId, deletedAt])
+  @@index([isPublic, deletedAt])
+}
