@@ -319,7 +319,7 @@ DELETE /api/trash/:type/:id      # 彻底删除
 
 ### 5.3 同源
 
-- 开发：Vite 5173 + Express 3000，Vite proxy 转发 `/api` 到后端，避免 CORS
+- 开发：Vite 5173 + Express 3300，Vite proxy 转发 `/api` 到后端，避免 CORS
 - 生产：Express 托管前端静态资源
 
 ### 5.4 环境变量
@@ -327,7 +327,7 @@ DELETE /api/trash/:type/:id      # 彻底删除
 `.env`（gitignore）+ `.env.example`（提交）：
 
 ```
-PORT=3000
+PORT=3300
 DB_PATH=./db.sqlite
 JWT_SECRET=
 ADMIN_USERNAME=

@@ -12,10 +12,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    // dev 代理 /api 到后端 3000，避免 CORS（design.md 5.3 同源）
+    // dev 代理 /api 到后端 3300，避免 CORS（design.md 5.3 同源）
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:3300',
         changeOrigin: true,
       },
     },

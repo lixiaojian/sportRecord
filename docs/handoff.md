@@ -47,7 +47,7 @@
 ## 4. 环境与运行命令
 
 - 依赖安装：`pnpm install`
-- 启动后端（dev）：`pnpm --filter server dev`（默认 `PORT=3000`，`DATABASE_URL=file:./db.sqlite`，需配 `JWT_SECRET`）
+- 启动后端（dev）：`pnpm --filter server dev`（默认 `PORT=3300`，`DATABASE_URL=file:./db.sqlite`，需配 `JWT_SECRET`）
 - 启动全栈：`pnpm dev`（web 尚未初始化 Vite，阶段 5 起可用）
 - 构建 shared：`pnpm --filter shared build`
 - 测试：`pnpm --filter server test`（按 `VITEST_POOL_ID` 每个 worker 一个独立临时库 `.test/test-${poolId}.sqlite`，setup 默认 `JWT_SECRET=test-secret`）
@@ -123,5 +123,5 @@
 - 角色三级：游客 / user / admin（RBAC + ACL）；公开默认开关（用户级默认公开 true，单条可覆盖设私有）；游客只读公开数据
 - 软删除：全实体 `deletedAt` + Prisma extension 过滤 + 回收站（user 自己 / admin 全局），可恢复或彻底删除
 - admin 初始化：`.env` 的 `ADMIN_USERNAME` 命中已注册用户即 seed 提权
-- 纯在线（放弃 IndexedDB）；同源部署（dev Vite proxy `/api`→3000，生产 Express 托管静态）；暂不做 PWA、暂不部署、不记日志
+- 纯在线（放弃 IndexedDB）；同源部署（dev Vite proxy `/api`→3300，生产 Express 托管静态）；暂不做 PWA、暂不部署、不记日志
 - 包管理：pnpm workspace，`packageManager` 锁 `pnpm@10.33.2`；根级配置含 `eslint.config.js`(flat)、`.prettierrc.json`、`.prettierrcignore`、`.lintstagedrc.json`、`commitlint.config.js`、`.husky/{pre-commit,commit-msg}`、`.nvmrc`(node 20)、`.gitignore`

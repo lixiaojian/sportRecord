@@ -37,3 +37,6 @@ coverage/
 # misc
 *.local
 .idea
+
+# claude/omc 工具目录
+.omc/
