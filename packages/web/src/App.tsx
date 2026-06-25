@@ -18,6 +18,7 @@ import { MatchDetailPage } from './features/match/MatchDetailPage';
 import { EventListPage } from './features/match/EventListPage';
 import { StatsPage } from './features/stats/StatsPage';
 import { TrashPage } from './features/trash/TrashPage';
+import { SettingsPage } from './features/settings/SettingsPage';
 
 // 骨架阶段的占位页：后续阶段 6 替换为真实 feature 页面
 function Placeholder({ title }: { title: string }) {
@@ -49,7 +50,7 @@ const router = createBrowserRouter([
         children: [
           { path: '/stats', element: <StatsPage /> },
           { path: '/trash', element: <TrashPage /> },
-          { path: '/settings', element: <Placeholder title="设置" /> },
+          { path: '/settings', element: <SettingsPage /> },
         ],
       },
       { path: '/admin/users', element: <Placeholder title="用户管理（admin）" /> },
