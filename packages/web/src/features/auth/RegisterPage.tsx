@@ -1,39 +1,42 @@
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { loginSchema } from '@sport-record/shared';
-import { useLogin } from '../../lib/hooks/useAuth';
+import { useNavigate, Link } from 'react-router-dom';
+import { registerSchema } from '@sport-record/shared';
+import { useRegister } from '../../lib/hooks/useAuth';
 import { ApiError } from '../../lib/api';
 import { Button } from '../../components/ui/button';
 import { Field } from '../../components/ui/field';
 
-export function LoginPage() {
+export function RegisterPage() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? '/';
-  const login = useLogin();
+  const register = useRegister();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const parsed = loginSchema.safeParse({ username, password });
+    const parsed = registerSchema.safeParse({
+      username,
+      password,
+      nickname: nickname || undefined,
+    });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? '输入有误');
       return;
     }
     try {
-      await login.mutateAsync(parsed.data);
-      navigate(from, { replace: true });
+      await register.mutateAsync(parsed.data);
+      navigate('/', { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : '登录失败，请重试');
+      setError(err instanceof ApiError ? err.message : '注册失败，请重试');
     }
   }
 
   return (
     <div className="mx-auto mt-12 max-w-sm">
-      <h1 className="mb-6 text-2xl font-bold">登录</h1>
+      <h1 className="mb-6 text-2xl font-bold">注册</h1>
       <form onSubmit={onSubmit} className="space-y-4">
         <Field
           id="username"
@@ -48,17 +51,19 @@ export function LoginPage() {
           type="password"
           value={password}
           onChange={setPassword}
-          autoComplete="current-password"
+          autoComplete="new-password"
+          hint="至少 8 位，含字母和数字"
         />
+        <Field id="nickname" label="昵称（可选）" value={nickname} onChange={setNickname} />
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" className="w-full" disabled={login.isPending}>
-          {login.isPending ? '登录中…' : '登录'}
+        <Button type="submit" className="w-full" disabled={register.isPending}>
+          {register.isPending ? '注册中…' : '注册'}
         </Button>
       </form>
       <p className="mt-4 text-center text-sm text-muted-foreground">
-        没有账号？{' '}
-        <Link to="/register" className="text-primary underline-offset-4 hover:underline">
-          注册
+        已有账号？{' '}
+        <Link to="/login" className="text-primary underline-offset-4 hover:underline">
+          登录
         </Link>
       </p>
     </div>
