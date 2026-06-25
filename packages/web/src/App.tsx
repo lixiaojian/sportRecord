@@ -6,7 +6,7 @@ import { ThemeProvider } from './components/theme/ThemeProvider';
 import { queryClient } from './lib/query';
 import { bootstrapAuth } from './lib/auth';
 import { AppLayout } from './components/layout/AppLayout';
-import { RequireAuth } from './routes/guards';
+import { RequireAuth, RequireRole } from './routes/guards';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
 import { ExerciseListPage } from './features/exercise/ExerciseListPage';
@@ -19,6 +19,7 @@ import { EventListPage } from './features/match/EventListPage';
 import { StatsPage } from './features/stats/StatsPage';
 import { TrashPage } from './features/trash/TrashPage';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { AdminUsersPage } from './features/admin/AdminUsersPage';
 
 // 骨架阶段的占位页：后续阶段 6 替换为真实 feature 页面
 function Placeholder({ title }: { title: string }) {
@@ -53,7 +54,10 @@ const router = createBrowserRouter([
           { path: '/settings', element: <SettingsPage /> },
         ],
       },
-      { path: '/admin/users', element: <Placeholder title="用户管理（admin）" /> },
+      {
+        element: <RequireRole role="admin" />,
+        children: [{ path: '/admin/users', element: <AdminUsersPage /> }],
+      },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
