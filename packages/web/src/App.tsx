@@ -9,6 +9,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { RequireAuth } from './routes/guards';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
+import { ExerciseListPage } from './features/exercise/ExerciseListPage';
 
 // 骨架阶段的占位页：后续阶段 6 替换为真实 feature 页面
 function Placeholder({ title }: { title: string }) {
@@ -32,7 +33,7 @@ const router = createBrowserRouter([
       { path: '/matches', element: <Placeholder title="比赛记录" /> },
       { path: '/matches/:id', element: <Placeholder title="比赛详情" /> },
       { path: '/events', element: <Placeholder title="赛事" /> },
-      { path: '/exercises', element: <Placeholder title="动作库" /> },
+      { path: '/exercises', element: <ExerciseListPage /> },
       { path: '/stats', element: <Placeholder title="统计" /> },
       { path: '/users/:id', element: <Placeholder title="用户主页" /> },
       { path: '/403', element: <Placeholder title="403 权限不足" /> },
