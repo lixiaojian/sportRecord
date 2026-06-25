@@ -13,6 +13,9 @@ import { ExerciseListPage } from './features/exercise/ExerciseListPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { WorkoutListPage } from './features/training/WorkoutListPage';
 import { WorkoutDetailPage } from './features/training/WorkoutDetailPage';
+import { MatchListPage } from './features/match/MatchListPage';
+import { MatchDetailPage } from './features/match/MatchDetailPage';
+import { EventListPage } from './features/match/EventListPage';
 
 // 骨架阶段的占位页：后续阶段 6 替换为真实 feature 页面
 function Placeholder({ title }: { title: string }) {
@@ -33,9 +36,9 @@ const router = createBrowserRouter([
       { path: '/register', element: <RegisterPage /> },
       { path: '/workouts', element: <WorkoutListPage /> },
       { path: '/workouts/:id', element: <WorkoutDetailPage /> },
-      { path: '/matches', element: <Placeholder title="比赛记录" /> },
-      { path: '/matches/:id', element: <Placeholder title="比赛详情" /> },
-      { path: '/events', element: <Placeholder title="赛事" /> },
+      { path: '/matches', element: <MatchListPage /> },
+      { path: '/matches/:id', element: <MatchDetailPage /> },
+      { path: '/events', element: <EventListPage /> },
       { path: '/exercises', element: <ExerciseListPage /> },
       { path: '/stats', element: <Placeholder title="统计" /> },
       { path: '/users/:id', element: <Placeholder title="用户主页" /> },
