@@ -131,7 +131,7 @@
 
 **任务**
 
-- `packages/web` 初始化：Vite + React 18 + TS
+- `packages/web` 初始化：Vite + React 19 + TS
 - Tailwind + shadcn/ui 接入
 - 路由配置 + 守卫组件（RequireAuth、RequireRole）
 - API client：fetch 封装，credentials、401 自动刷新、统一错误处理

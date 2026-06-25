@@ -38,7 +38,7 @@
 
 ## 3. 下一步计划
 
-1. 执行阶段 5（前端基础设施），详见 `docs/plan.md` 阶段 5。要点：`packages/web` 初始化 Vite + React 18 + TS；React Router v6 loader + 守卫；API client（fetch 封装，自动带 credentials、401 刷新）；TanStack Query + Zustand；shadcn/ui + Tailwind 主题；布局壳。
+1. 执行阶段 5（前端基础设施），详见 `docs/plan.md` 阶段 5。要点：`packages/web` 初始化 Vite + React 19 + TS；React Router v6 loader + 守卫；API client（fetch 封装，自动带 credentials、401 刷新）；TanStack Query + Zustand；shadcn/ui + Tailwind 主题；布局壳。
 2. 阶段 4 后端已就绪，前端可对接的 API 见 `docs/design.md` 5.2 路由表；统一响应 `{code,message,data}`，错误码语义见下文第 5 节。
 3. 阶段 5 前建议跑一次 `security-review`（覆盖 ACL/软删除泄漏/分页越权/公开统计是否泄漏私有），作为阶段 4 收尾。
 
@@ -118,7 +118,7 @@
 
 ### 技术栈关键决策（已定，不再讨论，详见 `docs/design.md`）
 
-- 前端：Vite + React 18 + TS，React Router v6(loader+守卫)，TanStack Query + Zustand，shadcn/ui + Tailwind，Recharts，RHF + Zod，date-fns
+- 前端：Vite + React 19 + TS，React Router v6(loader+守卫)，TanStack Query + Zustand，shadcn/ui + Tailwind，Recharts，RHF + Zod，date-fns
 - 后端：Express 5 + Prisma 7 + SQLite，JWT(access 1h 内存 / refresh 30d httpOnly cookie)，scrypt 密码哈希，zod 校验中间件，全局错误中间件，express-rate-limit 分级限流
 - 角色三级：游客 / user / admin（RBAC + ACL）；公开默认开关（用户级默认公开 true，单条可覆盖设私有）；游客只读公开数据
 - 软删除：全实体 `deletedAt` + Prisma extension 过滤 + 回收站（user 自己 / admin 全局），可恢复或彻底删除

@@ -34,7 +34,7 @@ sportRecord/
 
 ### 2.2 前端（packages/web）
 
-- Vite + React 18 + TypeScript
+- Vite + React 19 + TypeScript
 - React Router v6（loader + 守卫组件做权限拦截）
 - TanStack Query（服务端状态/缓存）+ Zustand（临时 UI 状态）
 - shadcn/ui + Tailwind CSS
