@@ -10,6 +10,7 @@ import { RequireAuth } from './routes/guards';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
 import { ExerciseListPage } from './features/exercise/ExerciseListPage';
+import { DashboardPage } from './features/dashboard/DashboardPage';
 
 // 骨架阶段的占位页：后续阶段 6 替换为真实 feature 页面
 function Placeholder({ title }: { title: string }) {
@@ -25,7 +26,7 @@ const router = createBrowserRouter([
   {
     element: <AppLayout />,
     children: [
-      { path: '/', element: <Placeholder title="概览 Dashboard" /> },
+      { path: '/', element: <DashboardPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
       { path: '/workouts', element: <Placeholder title="训练记录" /> },
