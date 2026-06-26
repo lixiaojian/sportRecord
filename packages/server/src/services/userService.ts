@@ -5,6 +5,7 @@ import {
   type UpdateProfileInput,
   type ChangePasswordInput,
   type UpdateUserByAdminInput,
+  type UserSearchItem,
 } from '@sport-record/shared';
 import { prisma } from '../lib/prisma.js';
 import { hashPassword, verifyPassword } from '../lib/password.js';
@@ -70,6 +71,23 @@ export async function getProfile(id: string) {
   const user = await prisma.user.findUnique({ where: { id }, select: PROFILE_SELECT });
   if (!user) throw NOT_FOUND('用户不存在');
   return user;
+}
+
+/** 搜索用户：按用户名/昵称模糊匹配，排除自己，仅公开字段，最多 limit 条 */
+export async function search(keyword: string, currentUserId: string, limit = 10) {
+  const where = {
+    deletedAt: null,
+    disabled: false,
+    id: { not: currentUserId },
+    OR: [{ username: { contains: keyword } }, { nickname: { contains: keyword } }],
+  };
+  const rows = await prisma.user.findMany({
+    where,
+    select: { id: true, username: true, nickname: true },
+    take: limit,
+    orderBy: { username: 'asc' },
+  });
+  return rows as UserSearchItem[];
 }
 
 /** 改自己资料 */

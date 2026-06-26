@@ -7,6 +7,8 @@ import type {
   PaginatedData,
   UpdateEventInput,
   UpdateMatchInput,
+  UserProfile,
+  UserSearchItem,
 } from '@sport-record/shared';
 
 export interface ListParams {
@@ -28,6 +30,12 @@ export const matchesApi = {
   getById: (id: string) => api.get<Match>(`/matches/${id}`),
   update: (id: string, body: UpdateMatchInput) => api.patch<Match>(`/matches/${id}`, body),
   remove: (id: string) => api.delete<void>(`/matches/${id}`),
+};
+
+/** 用户搜索：按关键字查用户，供比赛表单选对手/搭档 */
+export const usersApi = {
+  search: (q: string) => api.get<UserSearchItem[]>(`/users/search?q=${encodeURIComponent(q)}`),
+  getProfile: (id: string) => api.get<UserProfile>(`/users/${id}/profile`),
 };
 
 export const eventsApi = {

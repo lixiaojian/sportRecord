@@ -7,11 +7,12 @@ import {
   type CreateMatchInput,
   type Match,
 } from '@sport-record/shared';
-import { useCreateMatch, useUpdateMatch, useEventsForSelect } from './hooks';
+import { useCreateMatch, useUpdateMatch, useEventsForSelect, useUserProfiles } from './hooks';
 import { ApiError } from '../../lib/api';
 import { MATCH_TYPE_LABELS, MATCH_RESULT_LABELS } from '../../lib/labels';
 import { Button } from '../../components/ui/button';
 import { Input, Textarea, Select, Label, FieldError } from '../../components/ui/form-controls';
+import { UserPicker } from '../../components/ui/UserPicker';
 
 interface Props {
   initial?: Match;
@@ -42,6 +43,7 @@ export function MatchForm({ initial, onDone, onCancel }: Props) {
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<CreateMatchInput>({
     // createMatchSchema 的 opponentIds 带 .default([])，输入/输出类型不一致，
@@ -74,7 +76,17 @@ export function MatchForm({ initial, onDone, onCancel }: Props) {
 
   const { fields, append, remove } = useFieldArray({ control, name: 'scores' });
   const type = watch('type');
+  const partnerId = watch('partnerId');
+  const opponentIds = watch('opponentIds');
   const isDouble = type === 'double' || type === 'mixed';
+
+  // 编辑模式回显已选对手/搭档名称
+  const knownIds = [...(partnerId ? [partnerId] : []), ...opponentIds];
+  const profileResults = useUserProfiles(knownIds);
+  const selectedMap: Record<string, { username: string; nickname: string }> = {};
+  profileResults.forEach((r) => {
+    if (r.data) selectedMap[r.data.id] = { username: r.data.username, nickname: r.data.nickname };
+  });
 
   const pending = create.isPending || update.isPending;
 
@@ -154,12 +166,26 @@ export function MatchForm({ initial, onDone, onCancel }: Props) {
       </div>
 
       {isDouble && (
-        <div className="space-y-1">
-          <Label htmlFor="partnerId">搭档 ID（可选）</Label>
-          <Input id="partnerId" {...register('partnerId')} placeholder="队友的用户 UUID" />
-          <FieldError>{errors.partnerId?.message}</FieldError>
-        </div>
+        <UserPicker
+          mode="single"
+          label="搭档（可选）"
+          placeholder="搜索队友用户名/昵称"
+          value={partnerId || null}
+          onChange={(id) => setValue('partnerId', id ?? '')}
+          selectedMap={selectedMap}
+          error={errors.partnerId?.message}
+        />
       )}
+
+      <UserPicker
+        mode="multiple"
+        label="对手（可选，可多选）"
+        placeholder="搜索对手用户名/昵称"
+        value={opponentIds}
+        onChange={(ids) => setValue('opponentIds', ids)}
+        selectedMap={selectedMap}
+        error={errors.opponentIds?.message}
+      />
 
       <div className="space-y-1">
         <Label>比分（每局：我方 / 对方）</Label>

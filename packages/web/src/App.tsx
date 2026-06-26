@@ -1,25 +1,58 @@
-import { useEffect, useState } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { RouterProvider } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/theme/ThemeProvider';
 import { queryClient } from './lib/query';
 import { bootstrapAuth } from './lib/auth';
 import { AppLayout } from './components/layout/AppLayout';
 import { RequireAuth, RequireRole } from './routes/guards';
-import { LoginPage } from './features/auth/LoginPage';
-import { RegisterPage } from './features/auth/RegisterPage';
-import { ExerciseListPage } from './features/exercise/ExerciseListPage';
-import { DashboardPage } from './features/dashboard/DashboardPage';
-import { WorkoutListPage } from './features/training/WorkoutListPage';
-import { WorkoutDetailPage } from './features/training/WorkoutDetailPage';
-import { MatchListPage } from './features/match/MatchListPage';
-import { MatchDetailPage } from './features/match/MatchDetailPage';
-import { EventListPage } from './features/match/EventListPage';
-import { StatsPage } from './features/stats/StatsPage';
-import { TrashPage } from './features/trash/TrashPage';
-import { SettingsPage } from './features/settings/SettingsPage';
-import { AdminUsersPage } from './features/admin/AdminUsersPage';
+
+// 路由级懒加载：每个页面拆为独立 chunk，recharts 等大依赖随 stats 页延后加载
+const LoginPage = lazy(() =>
+  import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
+);
+const RegisterPage = lazy(() =>
+  import('./features/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })),
+);
+const ExerciseListPage = lazy(() =>
+  import('./features/exercise/ExerciseListPage').then((m) => ({
+    default: m.ExerciseListPage,
+  })),
+);
+const DashboardPage = lazy(() =>
+  import('./features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage })),
+);
+const WorkoutListPage = lazy(() =>
+  import('./features/training/WorkoutListPage').then((m) => ({
+    default: m.WorkoutListPage,
+  })),
+);
+const WorkoutDetailPage = lazy(() =>
+  import('./features/training/WorkoutDetailPage').then((m) => ({
+    default: m.WorkoutDetailPage,
+  })),
+);
+const MatchListPage = lazy(() =>
+  import('./features/match/MatchListPage').then((m) => ({ default: m.MatchListPage })),
+);
+const MatchDetailPage = lazy(() =>
+  import('./features/match/MatchDetailPage').then((m) => ({ default: m.MatchDetailPage })),
+);
+const EventListPage = lazy(() =>
+  import('./features/match/EventListPage').then((m) => ({ default: m.EventListPage })),
+);
+const StatsPage = lazy(() =>
+  import('./features/stats/StatsPage').then((m) => ({ default: m.StatsPage })),
+);
+const TrashPage = lazy(() =>
+  import('./features/trash/TrashPage').then((m) => ({ default: m.TrashPage })),
+);
+const SettingsPage = lazy(() =>
+  import('./features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
+const AdminUsersPage = lazy(() =>
+  import('./features/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage })),
+);
 
 // 骨架阶段的占位页：后续阶段 6 替换为真实 feature 页面
 function Placeholder({ title }: { title: string }) {
@@ -27,6 +60,14 @@ function Placeholder({ title }: { title: string }) {
     <div className="rounded-md border bg-card p-8 text-card-foreground">
       <h1 className="text-xl font-bold">{title}</h1>
       <p className="mt-2 text-sm text-muted-foreground">该页面将在阶段 6 实现。</p>
+    </div>
+  );
+}
+
+function PageFallback() {
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">
+      加载中…
     </div>
   );
 }
@@ -81,7 +122,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <RouterProvider router={router} />
+        <Suspense fallback={<PageFallback />}>
+          <RouterProvider router={router} />
+        </Suspense>
       </ThemeProvider>
     </QueryClientProvider>
   );

@@ -40,6 +40,20 @@ export const updateUserByAdminSchema = z.object({
 });
 export type UpdateUserByAdminInput = z.infer<typeof updateUserByAdminSchema>;
 
+// 用户搜索查询参数：q 为用户名/昵称关键字，最少 1 字符
+export const userSearchSchema = z.object({
+  q: z.string().trim().min(1, '请输入搜索关键字').max(50),
+});
+export type UserSearchInput = z.infer<typeof userSearchSchema>;
+
+// 用户搜索结果项：仅公开字段（供比赛表单选对手/搭档）
+export const userSearchItemSchema = z.object({
+  id: z.string().uuid(),
+  username: z.string(),
+  nickname: z.string(),
+});
+export type UserSearchItem = z.infer<typeof userSearchItemSchema>;
+
 // 用户公开资料响应
 export const userProfileSchema = z.object({
   id: z.string().uuid(),

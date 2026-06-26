@@ -1,12 +1,34 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, useQueries } from '@tanstack/react-query';
 import { queryKeys } from '../../lib/queryKeys';
-import { eventsApi, matchesApi } from './api';
+import { eventsApi, matchesApi, usersApi } from './api';
 import type {
   CreateEventInput,
   CreateMatchInput,
   UpdateEventInput,
   UpdateMatchInput,
 } from '@sport-record/shared';
+
+/** 用户搜索：关键字 >= 1 才发起，staleTime 短避免频繁请求 */
+export function useUserSearch(q: string) {
+  return useQuery({
+    queryKey: queryKeys.userSearch(q),
+    queryFn: () => usersApi.search(q),
+    enabled: q.trim().length >= 1,
+    staleTime: 10_000,
+  });
+}
+
+/** 批量获取用户 profile（编辑模式回显已选对手/搭档名称） */
+export function useUserProfiles(ids: string[]) {
+  return useQueries({
+    queries: ids.map((id) => ({
+      queryKey: queryKeys.userProfile(id),
+      queryFn: () => usersApi.getProfile(id),
+      enabled: !!id,
+      staleTime: 5 * 60_000,
+    })),
+  });
+}
 
 export function useMatches(page: number, pageSize: number) {
   return useQuery({

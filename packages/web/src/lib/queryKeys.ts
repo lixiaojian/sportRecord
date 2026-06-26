@@ -15,5 +15,6 @@ export const queryKeys = {
   statsPublic: (userId: string) => ['stats', 'public', userId] as const,
   trash: ['trash'] as const,
   users: ['users'] as const,
+  userSearch: (q: string) => ['users', 'search', q] as const,
   userProfile: (id: string) => ['users', id, 'profile'] as const,
 };

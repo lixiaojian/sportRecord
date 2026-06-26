@@ -186,4 +186,36 @@ describe('user 路由', () => {
       expect(res.status).toBe(422);
     });
   });
+
+  describe('GET /search（用户搜索）', () => {
+    it('无 token → 401', async () => {
+      const res = await request(app()).get('/api/users/search?q=oth');
+      expect(res.status).toBe(401);
+    });
+
+    it('无 q → 422', async () => {
+      const a = app();
+      const { accessToken } = await registerUser(a, ME);
+      const res = await request(a)
+        .get('/api/users/search')
+        .set('Authorization', `Bearer ${accessToken}`);
+      expect(res.status).toBe(422);
+    });
+
+    it('按用户名模糊匹配 → 200，返回列表且不含自己/不含敏感字段', async () => {
+      const a = app();
+      const me = await registerUser(a, ME);
+      await registerUser(a, OTHER);
+      const res = await request(a)
+        .get('/api/users/search?q=oth')
+        .set('Authorization', `Bearer ${me.accessToken}`);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.data)).toBe(true);
+      const list = res.body.data as { username: string }[];
+      expect(list.some((u) => u.username === OTHER)).toBe(true);
+      expect(list.some((u) => u.username === ME)).toBe(false);
+      expect(list[0]).not.toHaveProperty('passwordHash');
+      expect(list[0]).not.toHaveProperty('role');
+    });
+  });
 });
