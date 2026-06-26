@@ -2,22 +2,35 @@
 
 > 最后更新：2026-06-26 ｜ 交接人：李晓健
 >
-> 历史交接：上一版 `fb1e14d docs: 更新交接文档，阶段 5+6 完成` 记录阶段 5/6 收尾与阶段 7 待办；更早的 `8d84adf` 记录阶段 4 收尾。`docs/handoff-old.md` 已不存在（合并到本文件）。
+> 历史交接：上一版 `1e53bb7 docs: 更新交接文档，阶段 7 收尾完成` 记录阶段 7 必做项收尾；更早 `fb1e14d` 记录阶段 5/6、`8d84adf` 记录阶段 4。`docs/handoff-old.md` 已不存在（合并到本文件）。
 
 ## 1. 进度概览与已完成工作
 
-羽毛球训练与比赛记录分析平台（monorepo: web + server + shared）。**7 阶段计划全部完成**。在 `main` 分支，领先 origin 22 个 commit（尚未 push），工作区干净。
+羽毛球训练与比赛记录分析平台（monorepo: web + server + shared）。**7 阶段计划全部完成**。在 `main` 分支，已与 origin 同步，工作区干净。
 
-本次会话（2026-06-26）完成阶段 7 收尾必做项（1 commit `9218d2d`）：
+本次会话（2026-06-26）分两批，共 3 个 commit：
+
+批次一 — 阶段 7 收尾必做项（`9218d2d` + `1e53bb7`）：
 
 - **README**：新建根 `README.md` —— 项目说明、技术栈、目录结构、环境要求、安装/配置/初始化/启动命令、环境变量表、常用命令表、核心约定、文档索引。
 - **`.env.example` 修正**：`DB_PATH` → `DATABASE_URL`，与 `prisma.config.ts` 的 `env('DATABASE_URL')`、`lib/prisma.ts` 的 `process.env.DATABASE_URL`、`test/setup.ts` 写入的 `DATABASE_URL` 完全一致。原 `DB_PATH` 是历史遗留错误命名。
 - **`.gitignore`**：新增忽略 `.codegraph`。
-- **全局回归测试**：后端 148/148 通过（14 文件）；前端 tsc 0 error、lint 0 error、`vite build` 通过（dist 904 kB，recharts 占大头，未做 code-split，属可选优化）。
+- **全局回归测试**：后端 148/148 通过（14 文件）；前端 tsc 0 error、lint 0 error、`vite build` 通过。
+
+批次二 — 可选优化（`eea6f87`）：
+
+- **code-split 路由懒加载**：`App.tsx` 用 `React.lazy` 拆分所有路由页面 + `Suspense` 包裹。首屏 bundle **904 kB → 328 kB**（gzip 266 kB → 104 kB），recharts（420 kB）随 `StatsPage` 延后加载。
+- **用户搜索接口**（前后端打通）：
+  - shared：`userSearchSchema`（q 最少 1 字符）+ `UserSearchItem`（id/username/nickname）类型，已从 `index.ts` 导出。
+  - server：`userService.search(keyword, currentUserId, limit=10)` —— 按 username/nickname `contains` 模糊匹配，排除自己/`disabled`/软删用户，仅返回公开三字段；`GET /api/users/search` 路由（`authenticate`，固定路径 `/search` 在 `/:id` 前声明）。**注意**：Express 5 的 `req.query` 是只读 getter，不能用 `validate(query)` 中间件覆盖，故路由内用 `userSearchSchema.safeParse` 内联校验，失败抛 `AppError('VALIDATION_ERROR',422)`。
+  - server 测试：`user.test.ts` 补 3 例（无 token 401 / 无 q 422 / 模糊匹配 200 且排除自己无敏感字段），后端 **151/151** 通过。
+  - web：`features/match/api.ts` 增 `usersApi.search/getProfile`；`hooks.ts` 增 `useUserSearch`（staleTime 10s）+ `useUserProfiles`（`useQueries` 批量取 profile 供编辑回显）；`lib/queryKeys.ts` 增 `userSearch(q)`。
+  - web：新组件 `components/ui/UserPicker.tsx` —— single/multiple 双模式，输入关键字 → 下拉候选 → 选中并以 chip 回显名称，点击外部收起。
+  - web：`MatchForm.tsx` 搭档/对手从 UUID 文本输入改为 `UserPicker` 搜索选择；编辑模式用 `useUserProfiles` 回显已选用户名。
 
 阶段 0–6 此前已完成（详见上一版交接与 git log）：
 
-- 阶段 0 脚手架 → 1 shared → 2 后端基础 → 3 后端认证权限 → 4 后端业务 CRUD（8 资源，TDD，148 测试）→ 5 前端基础设施 → 6 前端业务页面（8 feature 各一 commit：exercise/dashboard/training/match/stats/trash/settings/admin）。
+- 阶段 0 脚手架 → 1 shared → 2 后端基础 → 3 后端认证权限 → 4 后端业务 CRUD（8 资源，TDD）→ 5 前端基础设施 → 6 前端业务页面（8 feature 各一 commit：exercise/dashboard/training/match/stats/trash/settings/admin）。
 
 可复用模式（前后端一致）：后端 service（list/create/getById/getMutable/update/remove）+ route（optionalAuth 分页读 / authenticate+validate 写改删），ACL = `isOwner` || admin，私有 404；前端 feature = `api.ts` + `hooks.ts`（useQuery/useMutation + invalidateQueries）+ 页面组件，RHF+zodResolver 共享 schema。
 
@@ -28,28 +41,22 @@
 - [x] 阶段 5：前端基础设施 —— 已完成
 - [x] 阶段 6：前端业务页面 —— 已完成
 - [x] 阶段 7：收尾 —— **必做项已完成**（README / .env.example / 回归测试）
+- [x] 可选优化：code-split 路由懒加载 —— 已完成
+- [x] 可选优化：用户搜索接口（前后端） —— 已完成
 
-剩余均为**可选优化**，未做：
+**遗留（可选，未做）**：
 
-- [ ] 前端单测：vitest 已配但 `packages/web/src` 下无测试文件，`packages/web` 缺 vitest/jsdom/@testing-library 等 devDependencies（当前仅根级有 vitest）。补测需先装依赖。建议优先补 `lib/api.ts` 的 401 刷新去重逻辑、`authStore`、关键表单 zod 校验。
-- [ ] 前端 code-split：recharts 懒加载降 bundle 体积（当前 904 kB）。
-- [ ] 比赛对手用户搜索接口：`opponentIds`/`partnerId` 关联注册用户，但后端只有 admin 用户列表 + `GET /:id/profile`，普通用户无法搜索用户。当前前端表单对手/搭档留空（schema 默认 `[]`/可空）。
+- [ ] 前端单测：`packages/web` 缺 vitest/jsdom/@testing-library 等 devDependencies（当前仅根级有 vitest），`src` 下无测试文件。补测需先装依赖并在 `vite.config.ts` 加 `test` 配置（environment: jsdom）。建议优先补 `lib/api.ts` 的 401 刷新去重逻辑、`authStore`、`UserPicker` 交互、`MatchForm` zod 校验。用 `superpowers:test-driven-development`。
 
 > 完整 7 阶段顺序与每阶段验收标准见 `docs/plan.md`。
 
 ## 3. 下一步计划
 
-阶段 7 收尾已完成，项目主线交付完毕。若继续，按优先级：
+项目主线已交付，与 origin 同步。仅剩前端单测一项遗留（可选）。若继续：
 
-1. **`git push`**：本地领先 origin 22 commit，按需推送。
-2. （可选）补前端单测：装 `vitest @testing-library/react jsdom` 等 devDep → 用 `superpowers:test-driven-development` 先补 `lib/api.ts` 401 刷新去重、`authStore`、表单 zod 校验。
-3. （可选）前端 code-split：recharts 用 `React.lazy` 懒加载，降首屏 bundle。
-4. （可选）用户搜索接口：后端加 `GET /api/users/search?q=`（公开/登录）供比赛表单选对手。
-5. （可选）部署：当前暂不部署，design.md 记"生产 Express 托管静态"。
-
-风险/需澄清：
-
-- 比赛对手用户搜索是否要做，待定（见上"可选优化"）。
+1. （可选）补前端单测：装 `vitest @testing-library/react @testing-library/user-event jsdom` devDep → `vite.config.ts` 加 `test:{environment:'jsdom'}` → 用 `superpowers:test-driven-development` 先补 `lib/api.ts` 401 刷新去重、`authStore`、`UserPicker`、`MatchForm` 校验。
+2. （可选）部署：当前暂不部署，design.md 记"生产 Express 托管静态"。
+3. 收工时再次 `work-handoff` 落盘。
 
 ## 4. 环境与运行命令
 
@@ -59,7 +66,7 @@
 - 启动全栈：`pnpm dev`
 - 构建 shared：`pnpm --filter shared build`
 - 构建前端：`pnpm --filter web build`（`tsc --noEmit && vite build`）
-- 测试：`pnpm --filter server test`（148/148 通过；按 `VITEST_POOL_ID` 每个 worker 一个独立临时库 `.test/test-${poolId}.sqlite`，setup 默认 `JWT_SECRET=test-secret`）；前端 `pnpm --filter web test`（vitest，**当前无测试文件且缺 devDep**）
+- 测试：`pnpm --filter server test`（**151/151** 通过；按 `VITEST_POOL_ID` 每个 worker 一个独立临时库 `.test/test-${poolId}.sqlite`，setup 默认 `JWT_SECRET=test-secret`）；前端 `pnpm --filter web test`（vitest，**当前无测试文件且缺 devDep**）
 - seed：`pnpm --filter server db:seed`（内置动作库 + ADMIN_USERNAME 提权，幂等）
 - lint / 类型检查：`pnpm lint` / `pnpm -r exec tsc --noEmit`
 - 数据库迁移：`pnpm --filter server db:migrate`（需 `DATABASE_URL`）
@@ -89,8 +96,16 @@
 ### 阶段 7 关键点
 
 - **环境变量名统一为 `DATABASE_URL`**：上一版交接第 70 行曾误写 `DATABASE_URL=file:./db.sqlite` 但 `.env.example` 当时却是 `DB_PATH`，本次已修正 `.env.example` 为 `DATABASE_URL`，三者（config/lib/test）一致。
-- **前端单测基建缺失**：`packages/web/package.json` 的 `test` 脚本是 `vitest run`，但 devDependencies 里没有 vitest（只有根级有）、没有 jsdom/@testing-library。直接 `pnpm --filter web test` 会报找不到 vitest。补测前需先装依赖并在 `vite.config.ts` 加 `test` 配置（environment: jsdom）。
+- **前端单测基建缺失**：`packages/web/package.json` 的 `test` 脚本是 `vitest run`，但 devDependencies 里没有 vitest（只有根级有）、没有 jsdom/@testing-library。直接 `pnpm --filter web test` 会报找不到 vitest。补测前需先装依赖并在 `vite.config.ts` 加 `test` 配置（environment: jsdom）。**此项已记为遗留**。
 - **README 已落地**：根 `README.md` 含完整启动流程，新人可照此启动。
+
+### 可选优化关键点（本次完成）
+
+- **路由懒加载**：`App.tsx` 所有路由页面用 `React.lazy(() => import(...).then(m => ({default: m.X}))})`，`RouterProvider` 外包 `<Suspense fallback={<PageFallback/>}>`。首屏 index chunk 328 kB（gzip 104 kB），`StatsPage` chunk 421 kB（含 recharts，gzip 121 kB）延后加载。`AppLayout`、`guards`、`lib/*` 仍在主 chunk。
+- **用户搜索接口（Express 5 坑）**：`req.query` 在 Express 5 是只读 getter，`validate(schema,'query')` 中间件想 `req.query = result.data` 会抛 `Cannot set property query of #<IncomingMessage> which has only a getter`。故 `GET /api/users/search` 改为路由内 `userSearchSchema.safeParse(req.query)` 内联校验。后续凡 query 校验都需内联，或改造 `validate` 支持 query（只解析不覆盖）。
+- **用户搜索路由声明顺序**：`/search` 是固定路径，必须在 `/:id` 与 `/:id/profile` 之前声明，否则被 `:id='search'` 吞掉。与 `/me`、`/me/password` 同理。
+- **UserPicker 组件**：`packages/web/src/components/ui/UserPicker.tsx`，`mode:'single'`（搭档，单选 + chip 回显 + ×移除）与 `mode:'multiple'`（对手，多选 + chip 列表）共用；输入关键字触发 `useUserSearch`（staleTime 10s），点外部收起；已选 id 通过 `selectedMap` 回显名称。`MatchForm` 编辑模式用 `useUserProfiles`（`useQueries` 批量取 `/:id/profile`）填充 `selectedMap`。
+- **搜索结果约束**：`userService.search` 排除自己（`id:{not:currentUserId}`）、`disabled:true`、软删（`deletedAt:null`），只 select `{id,username,nickname}`，take 10，按 username 升序。
 
 ### 阶段 5/6 关键约定
 
@@ -102,7 +117,7 @@
 - **比赛表单 zod 类型分叉**：`createMatchSchema.opponentIds` 带 `.default([])`，zod 输入类型（可选）与输出类型（必填）不一致，`useForm<CreateMatchInput>` + `zodResolver` 直接用会报 Resolver 类型不匹配；解法：`resolver: zodResolver(createMatchSchema) as unknown as Resolver<CreateMatchInput>`（见 `MatchForm.tsx`）。
 - **Recharts**：`StatsPage` 用 PieChart/LineChart/BarChart，空数据时渲染 `<Empty/>` 占位；recharts 3.9。
 - **资料保存同步 store**：`useUpdateProfile` 的 `onSuccess` 把返回 profile 合并进 authStore 当前用户（保留 role），避免 UI 显示旧资料。
-- **前端无单测**：vitest 已配但 `packages/web/src` 下无测试文件且缺 devDep，阶段 7 可补（见上）。
+- **前端无单测**：vitest 已配但 `packages/web/src` 下无测试文件且缺 devDep，已记为遗留（见第 2 节）。
 
 ### 阶段 3 关键约定
 
