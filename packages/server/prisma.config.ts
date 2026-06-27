@@ -8,6 +8,6 @@ export default defineConfig({
     seed: 'tsx prisma/seed.ts',
   },
   datasource: {
-    url: env('DATABASE_URL', 'file:./db.sqlite'),
+    url: env('DATABASE_URL') ?? 'file:./db.sqlite',
   },
 });
