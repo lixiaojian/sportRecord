@@ -48,19 +48,3 @@ export const Select = React.forwardRef<
   />
 ));
 Select.displayName = 'Select';
-
-/** 标签 */
-export function Label({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return (
-    <label
-      className={cn('text-sm font-medium leading-none peer-disabled:opacity-70', className)}
-      {...props}
-    />
-  );
-}
-
-/** 字段错误文字 */
-export function FieldError({ children }: { children?: React.ReactNode }) {
-  if (!children) return null;
-  return <p className="text-xs text-destructive">{children}</p>;
-}

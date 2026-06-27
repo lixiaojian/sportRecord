@@ -12,7 +12,11 @@ import { useExercises } from '../exercise/hooks';
 import { ApiError } from '../../lib/api';
 import { EXERCISE_UNIT_LABELS } from '../../lib/labels';
 import { Button } from '../../components/ui/button';
-import { Input, Select, Label, FieldError } from '../../components/ui/form-controls';
+import { Card, CardContent, CardFooter } from '../../components/ui/card';
+import { FieldGroup } from '../../components/ui/field';
+import { FormField } from '../../components/ui/form-field';
+import { FormSelect } from '../../components/ui/form-select';
+import { Grid } from '../../components/ui/layout';
 
 interface Props {
   workoutId: string;
@@ -23,12 +27,6 @@ interface Props {
 
 type NumberField = 'sets' | 'reps' | 'duration' | 'distance' | 'weight';
 
-/**
- * 按 exercise.unit 决定主要数值字段：
- * - sets: 组数
- * - duration: 时长
- * - reps: 次数
- */
 function primaryField(unit: Exercise['unit']): NumberField {
   if (unit === 'duration') return 'duration';
   if (unit === 'reps') return 'reps';
@@ -123,95 +121,89 @@ export function SetForm({ workoutId, editing, onDone, onCancel }: Props) {
 
   if (exercises.length === 0) {
     return (
-      <div className="rounded-md border bg-card p-4 text-sm text-muted-foreground">
-        暂无训练项，请先到「动作库」新建训练项。
-      </div>
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground">暂无训练项，请先到「动作库」新建训练项。</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-md border bg-card p-4">
-      <div className="space-y-1">
-        <Label htmlFor="exerciseId">训练项</Label>
-        <Select
-          id="exerciseId"
-          value={exerciseId}
-          onChange={(e) => onExerciseChange(e.target.value)}
-          disabled={isEdit}
-        >
-          {exercises.map((ex) => (
-            <option key={ex.id} value={ex.id}>
-              {ex.name}（{EXERCISE_UNIT_LABELS[ex.unit]}）
-            </option>
-          ))}
-        </Select>
-        <FieldError>{errors.exerciseId?.message}</FieldError>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="main">
-            {FIELD_LABELS[mainField]}
-            <span className="ml-1 text-xs text-muted-foreground">
-              （单位：{EXERCISE_UNIT_LABELS[unit]}）
-            </span>
-          </Label>
-          <Input
-            id="main"
-            type="number"
-            min={0}
-            {...register(mainField, { setValueAs: toNumber })}
-          />
-          <FieldError>
-            {(errors as Record<string, { message?: string }>)[mainField]?.message}
-          </FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="note">备注</Label>
-          <Input id="note" {...register('note')} placeholder="可选" />
-          <FieldError>{errors.note?.message}</FieldError>
-        </div>
-      </div>
-
-      <details className="text-sm">
-        <summary className="cursor-pointer text-muted-foreground">更多字段（重量 / 距离）</summary>
-        <div className="mt-2 grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="weight">{FIELD_LABELS.weight}</Label>
-            <Input
-              id="weight"
-              type="number"
-              min={0}
-              step="any"
-              {...register('weight', { setValueAs: toNumber })}
+    <Card>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="p-4">
+          <FieldGroup>
+            <FormSelect
+              id="exerciseId"
+              label="训练项"
+              error={errors.exerciseId?.message}
+              value={exerciseId}
+              onChange={(e) => onExerciseChange(e.target.value)}
+              disabled={isEdit}
+              options={exercises.map((ex) => ({
+                value: ex.id,
+                label: `${ex.name}（${EXERCISE_UNIT_LABELS[ex.unit]}）`,
+              }))}
             />
-            <FieldError>{errors.weight?.message}</FieldError>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="distance">{FIELD_LABELS.distance}</Label>
-            <Input
-              id="distance"
-              type="number"
-              min={0}
-              step="any"
-              {...register('distance', { setValueAs: toNumber })}
-            />
-            <FieldError>{errors.distance?.message}</FieldError>
-          </div>
-        </div>
-      </details>
 
-      {serverError && <FieldError>{serverError}</FieldError>}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? '保存中…' : isEdit ? '保存' : '添加记录'}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
-            取消
-          </Button>
-        )}
-      </div>
-    </form>
+            <Grid colsMd={2} gap={3}>
+              <FormField
+                id="main"
+                label={`${FIELD_LABELS[mainField]}（单位：${EXERCISE_UNIT_LABELS[unit]}）`}
+                type="number"
+                error={(errors as Record<string, { message?: string }>)[mainField]?.message}
+                register={register(mainField, { setValueAs: toNumber })}
+              />
+              <FormField
+                id="note"
+                label="备注"
+                placeholder="可选"
+                error={errors.note?.message}
+                register={register('note')}
+              />
+            </Grid>
+
+            <details className="text-sm">
+              <summary className="cursor-pointer text-muted-foreground">
+                更多字段（重量 / 距离）
+              </summary>
+              <div className="mt-2">
+                <Grid colsMd={2} gap={3}>
+                  <FormField
+                    id="weight"
+                    label={FIELD_LABELS.weight}
+                    type="number"
+                    error={errors.weight?.message}
+                    register={register('weight', { setValueAs: toNumber })}
+                  />
+                  <FormField
+                    id="distance"
+                    label={FIELD_LABELS.distance}
+                    type="number"
+                    error={errors.distance?.message}
+                    register={register('distance', { setValueAs: toNumber })}
+                  />
+                </Grid>
+              </div>
+            </details>
+
+            {serverError && <div className="text-xs text-destructive">{serverError}</div>}
+          </FieldGroup>
+        </CardContent>
+        <CardFooter className="px-4 pb-4 pt-0">
+          <div className="flex gap-2">
+            <Button type="submit" disabled={pending}>
+              {pending ? '保存中…' : isEdit ? '保存' : '添加记录'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
+                取消
+              </Button>
+            )}
+          </div>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

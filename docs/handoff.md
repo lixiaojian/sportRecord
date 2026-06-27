@@ -1,6 +1,6 @@
 # 工作交接 - sport-record
 
-> 最后更新：2026-06-26 ｜ 交接人：李晓健
+> 最后更新：2026-06-27 ｜ 交接人：李晓健
 >
 > 历史交接：上一版 `1e53bb7 docs: 更新交接文档，阶段 7 收尾完成` 记录阶段 7 必做项收尾；更早 `fb1e14d` 记录阶段 5/6、`8d84adf` 记录阶段 4。`docs/handoff-old.md` 已不存在（合并到本文件）。
 
@@ -8,7 +8,31 @@
 
 羽毛球训练与比赛记录分析平台（monorepo: web + server + shared）。**7 阶段计划全部完成**。在 `main` 分支，已与 origin 同步，工作区干净。
 
-本次会话（2026-06-26）分两批，共 3 个 commit：
+本次会话（2026-06-27）— 前端 UI 组件封装升级：
+
+将所有原生 HTML 表单输入组件替换为 shadcn/ui 风格"三合一"封装组件（Label + Control + Error），统一表单模式。
+
+- **新建 layout.tsx**：Stack / Grid / Container 布局组件（Tailwind 完整类名映射，杜绝 JIT 拼接）
+- **新建 field.tsx**：Field 体系组件（Field / FieldLabel / FieldError / FieldDescription / FieldGroup / FieldSet / FieldLegend / FieldContent / FieldSeparator），基于 shadcn/ui 官方 Field 组件体系
+- **新建 form-field.tsx**：FormField 三合一（Label + Input + Error），支持 register 模式 / Controller 受控模式 / inputProps 受控模式
+- **新建 form-textarea.tsx**：FormTextarea 三合一（Label + Textarea + Error）
+- **新建 form-select.tsx**：FormSelect 三合一（Label + Select + Error），支持 `options: SelectOption[]` 数组 + register / 受控
+- **替换所有表单页面**：
+  - `ExerciseForm.tsx`：FormField / FormSelect / FormTextarea + FieldGroup
+  - `WorkoutForm.tsx`：FormField / FormTextarea + FieldGroup
+  - `SetForm.tsx`：FormField / FormSelect + FieldGroup
+  - `SettingsPage.tsx`：FormField / FormTextarea / FormSelect + FieldGroup
+  - `MatchForm.tsx`：FormField / FormTextarea / FormSelect / FieldGroup（含 useFieldArray 比分、UserPicker 搭档对手）
+  - `EventForm.tsx`：FormField / FormTextarea / FormSelect + FieldGroup
+  - `LoginPage.tsx`：FormField inputProps 受控模式（替换 FormInputField）
+  - `RegisterPage.tsx`：FormField inputProps 受控模式（替换 FormInputField）
+  - `UserPicker.tsx`：Field / FieldLabel / FieldError（替换 form-controls 的 Input / Label / FieldError）
+- **重写 DashboardPage.tsx**：Stack / Grid / Card / Badge / Progress 替换原生 HTML
+- **清理 form-controls.tsx**：移除 `Label`、`FieldError` 导出，仅保留 `Input / Textarea / Select` 底层样式组件
+- **清理 field.tsx**：移除 `FormInputField` 旧兼容组件及导出
+- **TypeScript 编译零错误通过**，无残留的 `form-controls` Label/FieldError 导入
+
+此前会话（2026-06-26）分两批，共 3 个 commit：
 
 批次一 — 阶段 7 收尾必做项（`9218d2d` + `1e53bb7`）：
 
@@ -43,6 +67,7 @@
 - [x] 阶段 7：收尾 —— **必做项已完成**（README / .env.example / 回归测试）
 - [x] 可选优化：code-split 路由懒加载 —— 已完成
 - [x] 可选优化：用户搜索接口（前后端） —— 已完成
+- [x] UI 组件封装升级：三合一表单组件 + Field 体系 + layout 组件 —— 已完成
 
 **遗留（可选，未做）**：
 
@@ -58,7 +83,39 @@
 2. （可选）部署：当前暂不部署，design.md 记"生产 Express 托管静态"。
 3. 收工时再次 `work-handoff` 落盘。
 
-## 4. 环境与运行命令
+## 4. 前端组件体系（当前）
+
+### UI 组件层
+
+| 文件                              | 组件                                                                                                             | 用途                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `components/ui/layout.tsx`        | Stack, Grid, Container                                                                                           | 布局（Tailwind 完整类名映射，杜绝 `gap-${n}` JIT 拼接）                           |
+| `components/ui/field.tsx`         | Field, FieldLabel, FieldError, FieldDescription, FieldGroup, FieldSet, FieldLegend, FieldContent, FieldSeparator | shadcn/ui Field 体系，表单结构组件                                                |
+| `components/ui/form-field.tsx`    | FormField                                                                                                        | 三合一：Label + Input + Error（支持 register / Controller / inputProps 三种模式） |
+| `components/ui/form-textarea.tsx` | FormTextarea                                                                                                     | 三合一：Label + Textarea + Error                                                  |
+| `components/ui/form-select.tsx`   | FormSelect                                                                                                       | 三合一：Label + Select + Error（支持 `options: SelectOption[]` 数组）             |
+| `components/ui/form-controls.tsx` | Input, Textarea, Select                                                                                          | 底层样式组件（仅样式封装，不再导出 Label / FieldError）                           |
+| `components/ui/button.tsx`        | Button                                                                                                           | shadcn/ui Button                                                                  |
+| `components/ui/card.tsx`          | Card, CardContent, CardFooter                                                                                    | shadcn/ui Card                                                                    |
+| `components/ui/badge.tsx`         | Badge                                                                                                            | shadcn/ui Badge                                                                   |
+| `components/ui/progress.tsx`      | Progress                                                                                                         | shadcn/ui Progress                                                                |
+| `components/ui/UserPicker.tsx`    | UserPicker                                                                                                       | 用户搜索选择器（single / multiple 模式）                                          |
+
+### 表单模式约定
+
+- **RHF + register 模式**（主流）：`<FormField label="名称" error={errors.name?.message} register={register('name')} />`
+- **RHF + Controller 模式**：`<FormField label="名称" error={fieldState} inputProps={field} />`
+- **手动受控模式**（非 RHF 页面如 LoginPage）：`<FormField label="名称" inputProps={{ value, onChange: (e) => setV(e.target.value) }} />`
+- error prop 兼容 string 或 RHF fieldState 对象，自动提取 message
+- 所有表单页面用 `FieldGroup` 包裹多个 Field，统一 `gap-4`
+- 布局用 `Grid colsMd={2} gap={3}` 实现双列
+
+### 已移除
+
+- `form-controls.tsx` 的 `Label`、`FieldError` 导出（功能已被 `field.tsx` 的 `FieldLabel`、`FieldError` 替代）
+- `field.tsx` 的 `FormInputField` 旧兼容组件（已被 `FormField` inputProps 模式替代）
+
+## 5. 环境与运行命令
 
 - 依赖安装：`pnpm install`
 - 启动后端（dev）：`pnpm --filter server dev`（默认 `PORT=3300`，`DATABASE_URL=file:./db.sqlite`，需配 `JWT_SECRET`）
@@ -91,7 +148,7 @@
   - **JWT_SECRET 必填**：生产部署前需在 `.env` 配强随机串，缺失则启动期抛错
   - **环境变量名是 `DATABASE_URL`**（非 DB_PATH）：`prisma.config.ts` / `lib/prisma.ts` / `test/setup.ts` 均读此名
 
-## 5. 备注（接手者必读）
+## 6. 备注（接手者必读）
 
 ### 阶段 7 关键点
 
@@ -106,6 +163,16 @@
 - **用户搜索路由声明顺序**：`/search` 是固定路径，必须在 `/:id` 与 `/:id/profile` 之前声明，否则被 `:id='search'` 吞掉。与 `/me`、`/me/password` 同理。
 - **UserPicker 组件**：`packages/web/src/components/ui/UserPicker.tsx`，`mode:'single'`（搭档，单选 + chip 回显 + ×移除）与 `mode:'multiple'`（对手，多选 + chip 列表）共用；输入关键字触发 `useUserSearch`（staleTime 10s），点外部收起；已选 id 通过 `selectedMap` 回显名称。`MatchForm` 编辑模式用 `useUserProfiles`（`useQueries` 批量取 `/:id/profile`）填充 `selectedMap`。
 - **搜索结果约束**：`userService.search` 排除自己（`id:{not:currentUserId}`）、`disabled:true`、软删（`deletedAt:null`），只 select `{id,username,nickname}`，take 10，按 username 升序。
+
+### UI 组件封装升级关键点（2026-06-27）
+
+- **三合一组件独立文件**：FormField / FormTextarea / FormSelect 各自独立文件，不在一个 field.tsx 里堆砌。
+- **FormField 三模式**：register prop 直接传 `register('name')` 返回值；Controller/受控用 `inputProps` 传 field 对象或 `{ value, onChange }`；error prop 兼容 string 和 RHF `fieldState` 对象。
+- **FormSelect options 数组**：`options: SelectOption[]`（`{ value, label }`）替代手写 `<option>`，内部遍历渲染；register 与受控 value/onChange 二选一。
+- **layout.tsx Tailwind 约束**：所有动态样式用完整类名映射表（如 `gapMap = { 1: 'gap-1', 2: 'gap-2', ... }`），禁止 `gap-${n}` 拼接（Tailwind JIT 不扫描动态类名）。
+- **DashboardPage 重写**：Stack / Grid / Card / Badge / Progress 替换所有原生 HTML 标签（`<div>` + className → 语义化组件）。
+- **form-controls.tsx 精简**：仅保留 `Input / Textarea / Select` 底层样式组件（被三合一组件内联样式引用，不再作为组件导入）；`Label` / `FieldError` 移除（被 `field.tsx` 的 `FieldLabel` / `FieldError` 替代）。
+- **FormInputField 移除**：旧版受控输入组件，auth 页面已迁移到 `FormField inputProps` 模式，无残留引用。
 
 ### 阶段 5/6 关键约定
 
@@ -171,7 +238,7 @@
 - 纯在线（放弃 IndexedDB）；同源部署（dev Vite proxy `/api`→3300，生产 Express 托管静态）；暂不做 PWA、暂不部署、不记日志
 - 包管理：pnpm workspace，`packageManager` 锁 `pnpm@10.33.2`；根级配置含 `eslint.config.js`(flat)、`.prettierrc.json`、`.prettierrcignore`、`.lintstagedrc.json`、`commitlint.config.js`、`.husky/{pre-commit,commit-msg}`、`.nvmrc`(node 20)、`.gitignore`
 
-## 6. Suggested skills
+## 7. Suggested skills
 
 下一个 agent 在可选优化阶段可调用：
 

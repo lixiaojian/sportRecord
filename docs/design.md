@@ -328,7 +328,7 @@ DELETE /api/trash/:type/:id      # 彻底删除
 
 ```
 PORT=3300
-DB_PATH=./db.sqlite
+DATABASE_URL=file:./db.sqlite
 JWT_SECRET=
 ADMIN_USERNAME=
 ```

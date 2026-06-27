@@ -15,7 +15,12 @@ import { useTheme, type Theme } from '../../components/theme/ThemeProvider';
 import { ApiError } from '../../lib/api';
 import { RACKET_HAND_LABELS, MAIN_EVENT_LABELS } from '../../lib/labels';
 import { Button } from '../../components/ui/button';
-import { Input, Textarea, Select, Label, FieldError } from '../../components/ui/form-controls';
+import { Card, CardContent, CardFooter } from '../../components/ui/card';
+import { FieldGroup } from '../../components/ui/field';
+import { FormField } from '../../components/ui/form-field';
+import { FormTextarea } from '../../components/ui/form-textarea';
+import { FormSelect } from '../../components/ui/form-select';
+import { Grid } from '../../components/ui/layout';
 
 export function SettingsPage() {
   const user = useCurrentUser();
@@ -71,56 +76,64 @@ function ProfileSection() {
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">个人资料</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-md border bg-card p-4">
-        <div className="space-y-1">
-          <Label htmlFor="nickname">昵称</Label>
-          <Input id="nickname" {...register('nickname')} />
-          <FieldError>{errors.nickname?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="avatar">头像 URL</Label>
-          <Input id="avatar" {...register('avatar')} placeholder="https://…" />
-          <FieldError>{errors.avatar?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="bio">简介</Label>
-          <Textarea id="bio" {...register('bio')} />
-          <FieldError>{errors.bio?.message}</FieldError>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label htmlFor="racketHand">持拍手</Label>
-            <Select id="racketHand" {...register('racketHand')}>
-              <option value="">未设置</option>
-              {RACKET_HAND_VALUES.map((h) => (
-                <option key={h} value={h}>
-                  {RACKET_HAND_LABELS[h]}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="mainEvent">主项</Label>
-            <Select id="mainEvent" {...register('mainEvent')}>
-              <option value="">未设置</option>
-              {MAIN_EVENT_VALUES.map((m) => (
-                <option key={m} value={m}>
-                  {MAIN_EVENT_LABELS[m]}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" {...register('defaultPublic')} />
-          默认公开我发布的记录
-        </label>
-        {serverError && <FieldError>{serverError}</FieldError>}
-        {saved && <p className="text-sm text-emerald-600">已保存</p>}
-        <Button type="submit" disabled={update.isPending}>
-          {update.isPending ? '保存中…' : '保存资料'}
-        </Button>
-      </form>
+      <Card>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="p-4">
+            <FieldGroup>
+              <FormField
+                id="nickname"
+                label="昵称"
+                error={errors.nickname?.message}
+                register={register('nickname')}
+              />
+              <FormField
+                id="avatar"
+                label="头像 URL"
+                placeholder="https://…"
+                error={errors.avatar?.message}
+                register={register('avatar')}
+              />
+              <FormTextarea
+                id="bio"
+                label="简介"
+                error={errors.bio?.message}
+                register={register('bio')}
+              />
+              <Grid colsMd={2} gap={3}>
+                <FormSelect
+                  id="racketHand"
+                  label="持拍手"
+                  register={register('racketHand')}
+                  options={[
+                    { value: '', label: '未设置' },
+                    ...RACKET_HAND_VALUES.map((h) => ({ value: h, label: RACKET_HAND_LABELS[h] })),
+                  ]}
+                />
+                <FormSelect
+                  id="mainEvent"
+                  label="主项"
+                  register={register('mainEvent')}
+                  options={[
+                    { value: '', label: '未设置' },
+                    ...MAIN_EVENT_VALUES.map((m) => ({ value: m, label: MAIN_EVENT_LABELS[m] })),
+                  ]}
+                />
+              </Grid>
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" {...register('defaultPublic')} />
+                默认公开我发布的记录
+              </label>
+              {serverError && <div className="text-xs text-destructive">{serverError}</div>}
+              {saved && <p className="text-sm text-emerald-600">已保存</p>}
+            </FieldGroup>
+          </CardContent>
+          <CardFooter className="px-4 pb-4 pt-0">
+            <Button type="submit" disabled={update.isPending}>
+              {update.isPending ? '保存中…' : '保存资料'}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
     </section>
   );
 }
@@ -155,24 +168,36 @@ function PasswordSection() {
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">修改密码</h2>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-md border bg-card p-4">
-        <div className="space-y-1">
-          <Label htmlFor="oldPassword">旧密码</Label>
-          <Input id="oldPassword" type="password" {...register('oldPassword')} />
-          <FieldError>{errors.oldPassword?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="newPassword">新密码</Label>
-          <Input id="newPassword" type="password" {...register('newPassword')} />
-          <FieldError>{errors.newPassword?.message}</FieldError>
-          <p className="text-xs text-muted-foreground">至少 8 位，需含字母与数字</p>
-        </div>
-        {serverError && <FieldError>{serverError}</FieldError>}
-        {saved && <p className="text-sm text-emerald-600">密码已修改</p>}
-        <Button type="submit" disabled={change.isPending}>
-          {change.isPending ? '提交中…' : '修改密码'}
-        </Button>
-      </form>
+      <Card>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="p-4">
+            <FieldGroup>
+              <FormField
+                id="oldPassword"
+                label="旧密码"
+                type="password"
+                error={errors.oldPassword?.message}
+                register={register('oldPassword')}
+              />
+              <FormField
+                id="newPassword"
+                label="新密码"
+                type="password"
+                hint="至少 8 位，需含字母与数字"
+                error={errors.newPassword?.message}
+                register={register('newPassword')}
+              />
+              {serverError && <div className="text-xs text-destructive">{serverError}</div>}
+              {saved && <p className="text-sm text-emerald-600">密码已修改</p>}
+            </FieldGroup>
+          </CardContent>
+          <CardFooter className="px-4 pb-4 pt-0">
+            <Button type="submit" disabled={change.isPending}>
+              {change.isPending ? '提交中…' : '修改密码'}
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
     </section>
   );
 }

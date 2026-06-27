@@ -4,7 +4,7 @@ import { registerSchema } from '@sport-record/shared';
 import { useRegister } from '../../lib/hooks/useAuth';
 import { ApiError } from '../../lib/api';
 import { Button } from '../../components/ui/button';
-import { Field } from '../../components/ui/field';
+import { FormField } from '../../components/ui/form-field';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -38,23 +38,31 @@ export function RegisterPage() {
     <div className="mx-auto mt-12 max-w-sm">
       <h1 className="mb-6 text-2xl font-bold">注册</h1>
       <form onSubmit={onSubmit} className="space-y-4">
-        <Field
+        <FormField
           id="username"
           label="用户名"
-          value={username}
-          onChange={setUsername}
-          autoComplete="username"
+          inputProps={{
+            value: username,
+            onChange: (e) => setUsername(e.target.value),
+            autoComplete: 'username',
+          }}
         />
-        <Field
+        <FormField
           id="password"
           label="密码"
           type="password"
-          value={password}
-          onChange={setPassword}
-          autoComplete="new-password"
           hint="至少 8 位，含字母和数字"
+          inputProps={{
+            value: password,
+            onChange: (e) => setPassword(e.target.value),
+            autoComplete: 'new-password',
+          }}
         />
-        <Field id="nickname" label="昵称（可选）" value={nickname} onChange={setNickname} />
+        <FormField
+          id="nickname"
+          label="昵称（可选）"
+          inputProps={{ value: nickname, onChange: (e) => setNickname(e.target.value) }}
+        />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={register.isPending}>
           {register.isPending ? '注册中…' : '注册'}

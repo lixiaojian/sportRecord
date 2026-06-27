@@ -12,7 +12,12 @@ import { useCreateExercise, useUpdateExercise } from './hooks';
 import { ApiError } from '../../lib/api';
 import { EXERCISE_CATEGORY_LABELS, EXERCISE_UNIT_LABELS } from '../../lib/labels';
 import { Button } from '../../components/ui/button';
-import { Input, Textarea, Select, Label, FieldError } from '../../components/ui/form-controls';
+import { Card, CardContent, CardFooter } from '../../components/ui/card';
+import { FieldGroup } from '../../components/ui/field';
+import { FormField } from '../../components/ui/form-field';
+import { FormSelect } from '../../components/ui/form-select';
+import { FormTextarea } from '../../components/ui/form-textarea';
+import { Grid } from '../../components/ui/layout';
 
 interface Props {
   initial?: Exercise;
@@ -59,52 +64,60 @@ export function ExerciseForm({ initial, onDone, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-md border bg-card p-4">
-      <div className="space-y-1">
-        <Label htmlFor="name">名称</Label>
-        <Input id="name" {...register('name')} />
-        <FieldError>{errors.name?.message}</FieldError>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="category">分类</Label>
-          <Select id="category" {...register('category')}>
-            {EXERCISE_CATEGORY_VALUES.map((c) => (
-              <option key={c} value={c}>
-                {EXERCISE_CATEGORY_LABELS[c]}
-              </option>
-            ))}
-          </Select>
-          <FieldError>{errors.category?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="unit">单位</Label>
-          <Select id="unit" {...register('unit')}>
-            {EXERCISE_UNIT_VALUES.map((u) => (
-              <option key={u} value={u}>
-                {EXERCISE_UNIT_LABELS[u]}
-              </option>
-            ))}
-          </Select>
-          <FieldError>{errors.unit?.message}</FieldError>
-        </div>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="note">备注</Label>
-        <Textarea id="note" {...register('note')} />
-        <FieldError>{errors.note?.message}</FieldError>
-      </div>
-      {serverError && <FieldError>{serverError}</FieldError>}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? '保存中…' : isEdit ? '保存' : '新建'}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
-            取消
-          </Button>
-        )}
-      </div>
-    </form>
+    <Card className="border-dashed">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="p-4">
+          <FieldGroup>
+            <FormField
+              id="exercise-name"
+              label="名称"
+              error={errors.name?.message}
+              register={register('name')}
+            />
+            <Grid cols={2} gap={3}>
+              <FormSelect
+                id="exercise-category"
+                label="分类"
+                error={errors.category?.message}
+                register={register('category')}
+                options={EXERCISE_CATEGORY_VALUES.map((c) => ({
+                  value: c,
+                  label: EXERCISE_CATEGORY_LABELS[c],
+                }))}
+              />
+              <FormSelect
+                id="exercise-unit"
+                label="单位"
+                error={errors.unit?.message}
+                register={register('unit')}
+                options={EXERCISE_UNIT_VALUES.map((u) => ({
+                  value: u,
+                  label: EXERCISE_UNIT_LABELS[u],
+                }))}
+              />
+            </Grid>
+            <FormTextarea
+              id="exercise-note"
+              label="备注"
+              error={errors.note?.message}
+              register={register('note')}
+            />
+            {serverError && <div className="text-xs text-destructive">{serverError}</div>}
+          </FieldGroup>
+        </CardContent>
+        <CardFooter className="px-4 pb-4 pt-0">
+          <div className="flex gap-2">
+            <Button type="submit" disabled={pending}>
+              {pending ? '保存中…' : isEdit ? '保存' : '新建'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
+                取消
+              </Button>
+            )}
+          </div>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

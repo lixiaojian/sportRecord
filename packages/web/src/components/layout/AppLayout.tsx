@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Menu, ShieldCheck, Trophy, UserCog } from 'lucide-react';
+import { Menu, ShieldCheck, Trophy, Dumbbell, UserCog } from 'lucide-react';
 import { ThemeToggle } from '../theme/ThemeToggle';
 import { useCurrentUser, useLogout } from '../../lib/hooks/useAuth';
 import { Button, buttonVariants } from '../ui/button';
@@ -9,6 +9,7 @@ import { cn } from '../../lib/utils';
 const NAV = [
   { to: '/', label: '首页', icon: ShieldCheck },
   { to: '/workouts', label: '训练', icon: ShieldCheck },
+  { to: '/exercises', label: '动作库', icon: Dumbbell },
   { to: '/matches', label: '比赛', icon: Trophy },
   { to: '/stats', label: '选手分析', icon: UserCog },
 ];

@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **后端**：Express 5 + Prisma 7 + SQLite、JWT (access 1h 内存 / refresh 30d httpOnly cookie)、scrypt 密码哈希、zod 校验、express-rate-limit
 - **前端**：Vite 5 + React 19 + TypeScript、React Router v6、TanStack Query v5 + Zustand v5、shadcn/ui + Tailwind v3、Recharts、RHF + Zod
+- **前端组件体系**：Field 体系（Field/FieldLabel/FieldError/FieldGroup）+ 三合一表单组件（FormField/FormTextarea/FormSelect，独立文件）+ layout 组件（Stack/Grid/Container）+ shadcn/ui（Button/Card/Badge/Progress）+ UserPicker
 - **共享**：zod schema + 类型 + 枚举
 
 ## 快速开始
@@ -57,7 +58,21 @@ ACL = `isOwner` || admin；私有资源对无权者返回 404。
 packages/web/src/features/<name>/
 ├── api.ts          # API 调用（api.get/post/patch/delete）
 ├── hooks.ts        # useQuery/useMutation + invalidateQueries
-└── <Page>.tsx      # 页面组件（RHF+zodResolver）
+└── <Page>.tsx      # 页面组件（RHF+zodResolver + FormField/FormSelect/FormTextarea）
+```
+
+### 前端 UI 组件
+
+```
+packages/web/src/components/ui/
+├── field.tsx           # Field 体系：Field/FieldLabel/FieldError/FieldDescription/FieldGroup 等
+├── form-field.tsx      # FormField 三合一（Label+Input+Error），register/Controller/inputProps 三模式
+├── form-textarea.tsx   # FormTextarea 三合一（Label+Textarea+Error）
+├── form-select.tsx     # FormSelect 三合一（Label+Select+Error），options 数组
+├── form-controls.tsx   # 底层 Input/Textarea/Select 样式组件（不导出 Label/FieldError）
+├── layout.tsx          # Stack/Grid/Container（Tailwind 完整类名映射）
+├── UserPicker.tsx      # 用户搜索选择器（single/multiple）
+├── button.tsx / card.tsx / badge.tsx / progress.tsx  # shadcn/ui
 ```
 
 ### 认证流程

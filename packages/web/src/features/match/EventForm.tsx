@@ -11,7 +11,12 @@ import { useCreateEvent, useUpdateEvent } from './hooks';
 import { ApiError } from '../../lib/api';
 import { EVENT_TYPE_LABELS } from '../../lib/labels';
 import { Button } from '../../components/ui/button';
-import { Input, Textarea, Select, Label, FieldError } from '../../components/ui/form-controls';
+import { Card, CardContent, CardFooter } from '../../components/ui/card';
+import { FieldGroup } from '../../components/ui/field';
+import { FormField } from '../../components/ui/form-field';
+import { FormTextarea } from '../../components/ui/form-textarea';
+import { FormSelect } from '../../components/ui/form-select';
+import { Grid } from '../../components/ui/layout';
 
 interface Props {
   initial?: Event;
@@ -73,62 +78,78 @@ export function EventForm({ initial, onDone, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-md border bg-card p-4">
-      <div className="space-y-1">
-        <Label htmlFor="name">赛事名称</Label>
-        <Input id="name" {...register('name')} placeholder="如：2026 俱乐部联赛" />
-        <FieldError>{errors.name?.message}</FieldError>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="type">类型</Label>
-          <Select id="type" {...register('type')}>
-            {EVENT_TYPE_VALUES.map((t) => (
-              <option key={t} value={t}>
-                {EVENT_TYPE_LABELS[t]}
-              </option>
-            ))}
-          </Select>
-          <FieldError>{errors.type?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="location">地点</Label>
-          <Input id="location" {...register('location')} placeholder="可选" />
-          <FieldError>{errors.location?.message}</FieldError>
-        </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="startDate">开始日期</Label>
-          <Input id="startDate" type="date" {...register('startDate')} />
-          <FieldError>{errors.startDate?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="endDate">结束日期</Label>
-          <Input id="endDate" type="date" {...register('endDate')} />
-          <FieldError>{errors.endDate?.message}</FieldError>
-        </div>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="note">备注</Label>
-        <Textarea id="note" {...register('note')} />
-        <FieldError>{errors.note?.message}</FieldError>
-      </div>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" {...register('isPublic')} />
-        公开（他人可见）
-      </label>
-      {serverError && <FieldError>{serverError}</FieldError>}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? '保存中…' : isEdit ? '保存' : '新建'}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
-            取消
-          </Button>
-        )}
-      </div>
-    </form>
+    <Card>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="p-4">
+          <FieldGroup>
+            <FormField
+              id="name"
+              label="赛事名称"
+              placeholder="如：2026 俱乐部联赛"
+              error={errors.name?.message}
+              register={register('name')}
+            />
+            <Grid colsMd={2} gap={3}>
+              <FormSelect
+                id="type"
+                label="类型"
+                error={errors.type?.message}
+                register={register('type')}
+                options={EVENT_TYPE_VALUES.map((t) => ({
+                  value: t,
+                  label: EVENT_TYPE_LABELS[t],
+                }))}
+              />
+              <FormField
+                id="location"
+                label="地点"
+                placeholder="可选"
+                error={errors.location?.message}
+                register={register('location')}
+              />
+            </Grid>
+            <Grid colsMd={2} gap={3}>
+              <FormField
+                id="startDate"
+                label="开始日期"
+                type="date"
+                error={errors.startDate?.message}
+                register={register('startDate')}
+              />
+              <FormField
+                id="endDate"
+                label="结束日期"
+                type="date"
+                error={errors.endDate?.message}
+                register={register('endDate')}
+              />
+            </Grid>
+            <FormTextarea
+              id="note"
+              label="备注"
+              error={errors.note?.message}
+              register={register('note')}
+            />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" {...register('isPublic')} />
+              公开（他人可见）
+            </label>
+            {serverError && <div className="text-xs text-destructive">{serverError}</div>}
+          </FieldGroup>
+        </CardContent>
+        <CardFooter className="px-4 pb-4 pt-0">
+          <div className="flex gap-2">
+            <Button type="submit" disabled={pending}>
+              {pending ? '保存中…' : isEdit ? '保存' : '新建'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
+                取消
+              </Button>
+            )}
+          </div>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

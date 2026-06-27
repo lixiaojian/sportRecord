@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { UserSearchItem } from '@sport-record/shared';
 import { useUserSearch } from '../../features/match/hooks';
-import { Input, Label, FieldError } from './form-controls';
+import { Field, FieldLabel, FieldError } from './field';
 import { cn } from '../../lib/utils';
 
 interface SingleProps {
@@ -75,8 +75,8 @@ export function UserPicker(props: Props) {
   }
 
   return (
-    <div className="space-y-1">
-      <Label>{label}</Label>
+    <Field>
+      <FieldLabel>{label}</FieldLabel>
 
       {props.mode === 'single' && props.value && selectedMap?.[props.value] && (
         <div className="flex items-center gap-2 rounded-md border bg-accent/40 px-3 py-1.5 text-sm">
@@ -112,7 +112,7 @@ export function UserPicker(props: Props) {
       )}
 
       <div ref={boxRef} className="relative">
-        <Input
+        <input
           value={q}
           placeholder={placeholder}
           onChange={(e) => {
@@ -120,6 +120,7 @@ export function UserPicker(props: Props) {
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         {open && q.trim() && (
           <div className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover shadow-md">
@@ -145,6 +146,6 @@ export function UserPicker(props: Props) {
         )}
       </div>
       <FieldError>{error}</FieldError>
-    </div>
+    </Field>
   );
 }

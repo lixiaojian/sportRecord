@@ -5,7 +5,11 @@ import { createWorkoutSchema, type CreateWorkoutInput, type Workout } from '@spo
 import { useCreateWorkout, useUpdateWorkout } from './hooks';
 import { ApiError } from '../../lib/api';
 import { Button } from '../../components/ui/button';
-import { Input, Textarea, Label, FieldError } from '../../components/ui/form-controls';
+import { Card, CardContent, CardFooter } from '../../components/ui/card';
+import { FieldGroup } from '../../components/ui/field';
+import { FormField } from '../../components/ui/form-field';
+import { FormTextarea } from '../../components/ui/form-textarea';
+import { Grid } from '../../components/ui/layout';
 
 interface Props {
   initial?: Workout;
@@ -58,55 +62,69 @@ export function WorkoutForm({ initial, onDone, onCancel }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-md border bg-card p-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="date">日期</Label>
-          <Input id="date" type="date" {...register('date')} />
-          <FieldError>{errors.date?.message}</FieldError>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="duration">时长（分钟）</Label>
-          <Input
-            id="duration"
-            type="number"
-            min={0}
-            max={600}
-            {...register('duration', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
-          />
-          <FieldError>{errors.duration?.message}</FieldError>
-        </div>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="title">标题</Label>
-        <Input id="title" {...register('title')} placeholder="如：晨练 / 多球训练" />
-        <FieldError>{errors.title?.message}</FieldError>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="feeling">感受</Label>
-        <Input id="feeling" {...register('feeling')} placeholder="一句话状态" />
-        <FieldError>{errors.feeling?.message}</FieldError>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="note">备注</Label>
-        <Textarea id="note" {...register('note')} />
-        <FieldError>{errors.note?.message}</FieldError>
-      </div>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" {...register('isPublic')} />
-        公开（他人可见）
-      </label>
-      {serverError && <FieldError>{serverError}</FieldError>}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? '保存中…' : isEdit ? '保存' : '新建'}
-        </Button>
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
-            取消
-          </Button>
-        )}
-      </div>
-    </form>
+    <Card>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="p-4">
+          <FieldGroup>
+            <Grid colsMd={2} gap={3}>
+              <FormField
+                id="date"
+                label="日期"
+                type="date"
+                error={errors.date?.message}
+                register={register('date')}
+              />
+              <FormField
+                id="duration"
+                label="时长（分钟）"
+                type="number"
+                placeholder="0"
+                error={errors.duration?.message}
+                register={register('duration', {
+                  setValueAs: (v) => (v === '' ? undefined : Number(v)),
+                })}
+              />
+            </Grid>
+            <FormField
+              id="title"
+              label="标题"
+              placeholder="如：晨练 / 多球训练"
+              error={errors.title?.message}
+              register={register('title')}
+            />
+            <FormField
+              id="feeling"
+              label="感受"
+              placeholder="一句话状态"
+              error={errors.feeling?.message}
+              register={register('feeling')}
+            />
+            <FormTextarea
+              id="note"
+              label="备注"
+              error={errors.note?.message}
+              register={register('note')}
+            />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" {...register('isPublic')} />
+              公开（他人可见）
+            </label>
+            {serverError && <div className="text-xs text-destructive">{serverError}</div>}
+          </FieldGroup>
+        </CardContent>
+        <CardFooter className="px-4 pb-4 pt-0">
+          <div className="flex gap-2">
+            <Button type="submit" disabled={pending}>
+              {pending ? '保存中…' : isEdit ? '保存' : '新建'}
+            </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel} disabled={pending}>
+                取消
+              </Button>
+            )}
+          </div>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }
