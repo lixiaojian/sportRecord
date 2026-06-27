@@ -121,3 +121,29 @@ export {
   type Match,
   scoresSchema,
 } from './schemas/match.js';
+
+// Stats
+export {
+  trainingStatsSchema,
+  type TrainingStats,
+  matchStatsSchema,
+  type MatchStats,
+  publicStatsSchema,
+  type PublicStats,
+} from './schemas/stats.js';
+
+// Dashboard
+export {
+  abilityScoresSchema,
+  type AbilityScores,
+  trainingSuggestionSchema,
+  type TrainingSuggestion,
+  techniqueStatSchema,
+  type TechniqueStat,
+  performanceTrendSchema,
+  type PerformanceTrend,
+  matchTrendSchema,
+  type MatchTrend,
+  dashboardStatsSchema,
+  type DashboardStats,
+} from './schemas/dashboard.js';

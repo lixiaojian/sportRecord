@@ -10,6 +10,7 @@ export const queryKeys = {
   match: (id: string) => ['matches', id] as const,
   events: ['events'] as const,
   event: (id: string) => ['events', id] as const,
+  dashboard: ['dashboard', 'stats'] as const,
   statsTraining: ['stats', 'training'] as const,
   statsMatch: ['stats', 'match'] as const,
   statsPublic: (userId: string) => ['stats', 'public', userId] as const,

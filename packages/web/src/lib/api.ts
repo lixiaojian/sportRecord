@@ -104,3 +104,32 @@ export const api = {
   delete: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: 'DELETE' }),
 };
+
+// ===== API 方法 =====
+
+// Dashboard
+export async function getDashboardStats() {
+  return api.get<import('@sport-record/shared').DashboardStats>('/dashboard');
+}
+
+// 训练统计
+export async function getTrainingStats() {
+  return api.get<import('@sport-record/shared').TrainingStats>('/stats/training');
+}
+
+// 比赛统计
+export async function getMatchStats() {
+  return api.get<import('@sport-record/shared').MatchStats>('/stats/match');
+}
+
+// 用户公开资料
+export async function getUserProfile(userId: string) {
+  return api.get<import('@sport-record/shared').UserProfile>(`/users/${userId}/profile`);
+}
+
+// 用户搜索
+export async function searchUsers(q: string) {
+  return api.get<import('@sport-record/shared').UserSearchItem[]>(
+    `/users/search?q=${encodeURIComponent(q)}`,
+  );
+}
